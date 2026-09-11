@@ -1,0 +1,394 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no" />
+<meta name="theme-color" content="#0b1020" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+<meta name="apple-mobile-web-app-title" content="TILT" />
+<link rel="manifest" href="manifest.webmanifest" />
+<link rel="icon" type="image/svg+xml" href="icon.svg" />
+<title>TILT — Prototype V0.2.1</title>
+<style>
+:root{
+  --bg:#0b1020;
+  --panel:#141b31;
+  --panel2:#1b2440;
+  --text:#f7f9ff;
+  --muted:#a9b2c9;
+  --accent:#7c5cff;
+  --accent2:#3dd9c4;
+  --danger:#ff5f7a;
+  --gold:#ffc857;
+  --line:rgba(255,255,255,.10);
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;background:
+ radial-gradient(circle at 20% -10%,rgba(124,92,255,.32),transparent 36%),
+ radial-gradient(circle at 90% 20%,rgba(61,217,196,.18),transparent 30%),
+ var(--bg);color:var(--text);font-family:Inter,ui-rounded,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;min-height:100%}
+body{display:flex;justify-content:center;padding:18px 12px 32px;overflow-x:hidden}
+button{font:inherit}
+.app{width:min(100%,520px)}
+.topbar{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:4px 2px 14px}
+.brand{display:flex;align-items:center;gap:10px}
+.logo{width:44px;height:44px;border-radius:14px;background:linear-gradient(145deg,#9e84ff,#5e3ee9 60%,#3dd9c4);display:grid;place-items:center;font-weight:900;box-shadow:0 10px 30px rgba(124,92,255,.35);transform:rotate(-7deg)}
+.brand strong{display:block;letter-spacing:.16em;font-size:18px}
+.brand small{color:var(--muted)}
+.pill{border:1px solid var(--line);background:rgba(255,255,255,.055);backdrop-filter:blur(10px);border-radius:999px;padding:8px 12px;color:var(--muted);font-size:13px;white-space:nowrap}
+
+.screen{display:none}
+.screen.active{display:block}
+
+.hero{
+  border:1px solid var(--line);
+  background:linear-gradient(180deg,rgba(255,255,255,.07),rgba(255,255,255,.025));
+  border-radius:28px;
+  padding:24px;
+  box-shadow:0 28px 90px rgba(0,0,0,.25);
+  overflow:hidden;
+  position:relative
+}
+.hero:before{content:"";position:absolute;width:180px;height:180px;border-radius:50%;background:rgba(124,92,255,.23);filter:blur(8px);right:-70px;top:-70px}
+.hero h1{font-size:36px;line-height:.95;margin:10px 0 12px;letter-spacing:-.04em}
+.hero p{color:var(--muted);line-height:1.55;margin:0 0 18px;max-width:380px}
+.hero-art{height:190px;position:relative;margin:6px 0 18px;border-radius:22px;background:
+ linear-gradient(145deg,rgba(124,92,255,.14),rgba(61,217,196,.06)),
+ #0e1529;border:1px solid rgba(255,255,255,.06);overflow:hidden}
+.hero-art .orb{position:absolute;width:44px;height:44px;border-radius:50%;left:58px;top:35px;background:radial-gradient(circle at 35% 25%,#fff6cc 0 9%,#ffc857 24%,#ff9a3d 75%);box-shadow:0 0 24px rgba(255,200,87,.45)}
+.hero-art .goal{position:absolute;width:58px;height:58px;border-radius:50%;right:48px;bottom:28px;border:6px solid #49e3b4;box-shadow:0 0 28px rgba(73,227,180,.28),inset 0 0 18px rgba(73,227,180,.16)}
+.hero-art .bar{position:absolute;height:16px;border-radius:8px;background:linear-gradient(#3b4565,#222c4b);box-shadow:inset 0 2px 0 rgba(255,255,255,.08),0 8px 20px rgba(0,0,0,.25)}
+.hero-art .b1{width:190px;left:24px;top:98px;transform:rotate(-8deg)}
+.hero-art .b2{width:170px;right:18px;top:48px;transform:rotate(11deg)}
+.hero-art .spark{position:absolute;width:7px;height:7px;border-radius:50%;background:#fff;opacity:.7}
+.hero-art .s1{left:25px;top:32px}.hero-art .s2{right:28px;top:24px}.hero-art .s3{right:110px;bottom:30px}
+.primary,.secondary,.iconbtn{
+  border:0;color:white;cursor:pointer;min-height:50px;border-radius:16px;font-weight:800;transition:.15s transform,.15s filter
+}
+.primary{width:100%;background:linear-gradient(135deg,#8d70ff,#6a49f4);box-shadow:0 12px 28px rgba(108,73,244,.35)}
+.secondary{background:#1a2340;border:1px solid var(--line);color:var(--text)}
+.iconbtn{background:#18213b;border:1px solid var(--line)}
+.primary:active,.secondary:active,.iconbtn:active{transform:scale(.97);filter:brightness(.95)}
+.hintline{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px}
+.hint{font-size:12px;color:var(--muted);padding:7px 10px;border:1px solid var(--line);border-radius:999px;background:rgba(255,255,255,.035)}
+
+.game-card{
+  border:1px solid var(--line);
+  border-radius:28px;
+  padding:12px;
+  background:linear-gradient(180deg,rgba(255,255,255,.07),rgba(255,255,255,.025));
+  box-shadow:0 30px 90px rgba(0,0,0,.28)
+}
+.hud{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:8px;padding:6px 4px 10px}
+.hud .left{justify-self:start}.hud .center{text-align:center}.hud .right{justify-self:end}
+.label{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.12em}
+.value{font-weight:900;font-size:17px}
+.stars{font-size:16px;letter-spacing:2px}
+.canvas-wrap{position:relative;border-radius:22px;overflow:hidden;background:#0d1428;border:1px solid rgba(255,255,255,.06)}
+canvas{display:block;width:100%;height:auto;aspect-ratio: 320 / 470;touch-action:none;background:transparent}
+.overlaymsg{position:absolute;left:50%;top:14px;transform:translateX(-50%);padding:8px 12px;border-radius:999px;background:rgba(9,14,28,.72);backdrop-filter:blur(9px);border:1px solid var(--line);font-size:12px;color:#dfe6ff;opacity:.95;pointer-events:none}
+.controls{display:grid;grid-template-columns:1fr 74px 1fr;gap:10px;margin-top:12px}
+.ctrl{min-height:62px;border-radius:19px;border:1px solid var(--line);background:linear-gradient(180deg,#202a49,#151d35);color:#fff;font-size:26px;font-weight:900;box-shadow:inset 0 1px 0 rgba(255,255,255,.07)}
+.ctrl span{display:block;font-size:11px;color:var(--muted);font-weight:700;margin-top:2px}
+.ctrl.restart{font-size:20px}
+.status{min-height:44px;display:flex;align-items:center;justify-content:center;text-align:center;padding:10px 12px 2px;color:var(--muted);font-size:14px}
+.progress{height:8px;background:#11182b;border-radius:999px;overflow:hidden;margin:8px 2px 2px}
+.progress i{display:block;height:100%;width:20%;background:linear-gradient(90deg,#7c5cff,#3dd9c4);border-radius:999px;transition:.25s width}
+
+.complete{
+  margin-top:12px;padding:18px;border-radius:22px;background:linear-gradient(145deg,rgba(124,92,255,.19),rgba(61,217,196,.08));border:1px solid var(--line);display:none;text-align:center
+}
+.complete.show{display:block;animation:pop .28s ease-out}
+.complete h2{margin:2px 0 6px;font-size:24px}
+.complete p{margin:0 0 14px;color:var(--muted)}
+.complete .starsbig{font-size:30px;margin-bottom:6px}
+@keyframes pop{from{opacity:0;transform:scale(.96) translateY(8px)}to{opacity:1;transform:none}}
+
+.levels{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin-top:12px}
+.levelbtn{aspect-ratio:1;border-radius:14px;border:1px solid var(--line);background:#151d35;color:white;font-weight:900}
+.levelbtn.active{outline:2px solid #8c72ff;background:#211d4b}
+.levelbtn.locked{opacity:.42}
+.footer-note{color:#78839f;text-align:center;font-size:11px;margin-top:12px}
+@media (max-width:380px){.hero h1{font-size:31px}.controls{grid-template-columns:1fr 64px 1fr}.pill{display:none}}
+</style>
+</head>
+<body>
+<main class="app" id="app">
+  <div class="topbar">
+    <div class="brand">
+      <div class="logo">T</div>
+      <div><strong>TILT</strong><small>Gravity Puzzle</small></div>
+    </div>
+    <div class="pill">Prototype V0.2.1 · Auto</div>
+  </div>
+
+  <section class="screen" id="home">
+    <div class="hero">
+      <div class="pill" style="display:inline-block">Un geste. Tout le monde bascule.</div>
+      <h1>Tu ne bouges pas la bille.<br>Tu bouges le monde.</h1>
+      <p>Fais pivoter le niveau, utilise la gravité et trouve le chemin jusqu’au portail. Simple à comprendre. Beaucoup moins simple à maîtriser.</p>
+      <div class="hero-art" aria-hidden="true">
+        <div class="bar b1"></div><div class="bar b2"></div>
+        <div class="orb"></div><div class="goal"></div>
+        <i class="spark s1"></i><i class="spark s2"></i><i class="spark s3"></i>
+      </div>
+      <button class="primary" id="playBtn">JOUER</button>
+      <div class="hintline">
+        <span class="hint">↶ ↷ Rotation 90°</span>
+        <span class="hint">⭐ Moins de coups = mieux</span>
+        <span class="hint">☠ Évite les pièges</span>
+      </div>
+    </div>
+  </section>
+
+  <section class="screen active" id="gameScreen">
+    <div class="game-card">
+      <div class="hud">
+        <div class="left"><div class="label">Niveau</div><div class="value" id="levelText">1 / 5</div></div>
+        <div class="center"><div class="label">Objectif</div><div class="stars" id="starsHud">★★★</div></div>
+        <div class="right"><div class="label">Rotations</div><div class="value" id="moveText">0</div></div>
+      </div>
+
+      <div class="canvas-wrap">
+        <canvas id="game" width="320" height="470" aria-label="Niveau du jeu TILT"></canvas>
+        <div class="overlaymsg" id="gravityLabel">GRAVITÉ ↓</div>
+      </div>
+
+      <div class="progress"><i id="progressBar"></i></div>
+      <div class="status" id="status">Atteins le portail vert.</div>
+
+      <div class="controls">
+        <button class="ctrl" id="leftBtn" aria-label="Tourner à gauche">↶<span>GAUCHE</span></button>
+        <button class="ctrl restart" id="restartBtn" aria-label="Recommencer">↻<span>REJOUER</span></button>
+        <button class="ctrl" id="rightBtn" aria-label="Tourner à droite">↷<span>DROITE</span></button>
+      </div>
+
+      <div class="complete" id="completeBox">
+        <div class="starsbig" id="starsBig">★★★</div>
+        <h2 id="completeTitle">Parfait !</h2>
+        <p id="completeText">Niveau terminé en 2 rotations.</p>
+        <button class="primary" id="nextBtn">NIVEAU SUIVANT</button>
+      </div>
+
+      <div class="levels" id="levelButtons"></div>
+    </div>
+    <div class="footer-note">Conseil : sur PC, utilise ← →. Sur téléphone, les gros boutons suffisent.</div>
+  </section>
+</main>
+
+<script>
+(() => {
+  const W=320,H=470,R=10.5,G=620,BOUNCE=.18,FRICTION=.996;
+  const levels=[
+    {par:3,start:[60,70],goal:[258,388,23],walls:[[18,18,284,14],[18,438,284,14],[18,18,14,434],[288,18,14,434],[32,145,174,16],[126,278,162,16]],hazards:[],boosts:[]},
+    {par:4,start:[64,70],goal:[258,374,23],walls:[[18,18,284,14],[18,438,284,14],[18,18,14,434],[288,18,14,434],[32,134,194,15],[102,238,186,15],[32,334,150,15]],hazards:[[215,428,62,10]],boosts:[]},
+    {par:5,start:[58,374],goal:[254,72,23],walls:[[18,18,284,14],[18,438,284,14],[18,18,14,434],[288,18,14,434],[32,112,135,15],[153,196,135,15],[32,282,135,15],[153,360,135,15]],hazards:[[128,428,80,10]],boosts:[]},
+    {par:6,start:[62,68],goal:[253,386,23],walls:[[18,18,284,14],[18,438,284,14],[18,18,14,434],[288,18,14,434],[78,82,16,240],[166,185,16,253],[246,74,16,238]],hazards:[[32,428,55,10],[204,428,72,10]],boosts:[[111,160,22]]},
+    {par:7,start:[160,68],goal:[160,390,23],walls:[[18,18,284,14],[18,438,284,14],[18,18,14,434],[288,18,14,434],[32,126,98,15],[190,126,98,15],[104,224,112,15],[32,322,98,15],[190,322,98,15]],hazards:[[140,428,40,10],[140,32,40,10]],boosts:[[57,255,22],[263,255,22]]}
+  ];
+
+  const $=s=>document.querySelector(s);
+  const home=$('#home'),gameScreen=$('#gameScreen'),playBtn=$('#playBtn');
+  const canvas=$('#game'),ctx=canvas.getContext('2d');
+  const status=$('#status'), levelText=$('#levelText'),moveText=$('#moveText'),
+        starsHud=$('#starsHud'),gravityLabel=$('#gravityLabel'),progressBar=$('#progressBar');
+  const completeBox=$('#completeBox'),completeTitle=$('#completeTitle'),completeText=$('#completeText'),starsBig=$('#starsBig');
+  const leftBtn=$('#leftBtn'),rightBtn=$('#rightBtn'),restartBtn=$('#restartBtn'),nextBtn=$('#nextBtn'),levelButtons=$('#levelButtons');
+
+  let li=0,angle=0,moves=0,won=false,failed=false,last=performance.now(),shake=0;
+  let unlocked=1,ball={x:0,y:0,vx:0,vy:0};
+  let particles=[];
+
+  function showGame(){home.classList.remove('active');gameScreen.classList.add('active');resetLevel();}
+  if(playBtn){ playBtn.addEventListener('click',showGame); }
+
+  function makeLevelButtons(){
+    levelButtons.innerHTML='';
+    levels.forEach((_,i)=>{
+      const b=document.createElement('button');
+      b.className='levelbtn'+(i===li?' active':'')+(i>=unlocked?' locked':'');
+      b.textContent=i+1;b.disabled=i>=unlocked;
+      b.addEventListener('click',()=>{if(i<unlocked){li=i;resetLevel()}});
+      levelButtons.appendChild(b);
+    })
+  }
+
+  function resetLevel(){
+    const L=levels[li];angle=0;moves=0;won=false;failed=false;shake=0;
+    ball={x:L.start[0],y:L.start[1],vx:0,vy:0};
+    particles=[];completeBox.classList.remove('show');
+    status.textContent='Atteins le portail vert.';
+    updateUI();makeLevelButtons();
+  }
+
+  function updateUI(){
+    const L=levels[li];
+    levelText.textContent=(li+1)+' / '+levels.length;
+    moveText.textContent=moves;
+    const score=moves<=L.par?3:moves<=L.par+2?2:1;
+    starsHud.textContent='★'.repeat(score)+'☆'.repeat(3-score);
+    gravityLabel.textContent='GRAVITÉ '+['↓','←','↑','→'][angle];
+    progressBar.style.width=((li+1)/levels.length*100)+'%';
+  }
+
+  function rotate(dir){
+    if(won||failed)return;
+    angle=(angle+dir+4)%4;moves++;
+    ball.vx*=.66;ball.vy*=.66;
+    for(let i=0;i<12;i++)spawnParticle(ball.x,ball.y,'#9b87ff',1.5);
+    updateUI();
+  }
+
+  function spawnParticle(x,y,color,s=1){
+    particles.push({x,y,vx:(Math.random()-.5)*90*s,vy:(Math.random()-.5)*90*s,life:.55+Math.random()*.35,max:.9,color,size:2+Math.random()*3});
+    if(particles.length>90)particles.splice(0,particles.length-90);
+  }
+
+  function circleRect(px,py,r,rect){
+    const [x,y,w,h]=rect,nx=Math.max(x,Math.min(px,x+w)),ny=Math.max(y,Math.min(py,y+h)),dx=px-nx,dy=py-ny;
+    return dx*dx+dy*dy<r*r;
+  }
+  function resolveRect(rect){
+    const [x,y,w,h]=rect,nx=Math.max(x,Math.min(ball.x,x+w)),ny=Math.max(y,Math.min(ball.y,y+h));
+    let dx=ball.x-nx,dy=ball.y-ny,d2=dx*dx+dy*dy;
+    if(d2>=R*R)return;
+    let d=Math.sqrt(d2);
+    if(d===0){
+      const edges=[Math.abs(ball.x-x),Math.abs(x+w-ball.x),Math.abs(ball.y-y),Math.abs(y+h-ball.y)];
+      const m=Math.min(...edges),k=edges.indexOf(m);
+      [dx,dy]=k===0?[-1,0]:k===1?[1,0]:k===2?[0,-1]:[0,1];d=1;
+    }
+    const nxv=dx/d,nyv=dy/d,push=R-d;
+    ball.x+=nxv*push;ball.y+=nyv*push;
+    const vn=ball.vx*nxv+ball.vy*nyv;
+    if(vn<0){ball.vx-=(1+BOUNCE)*vn*nxv;ball.vy-=(1+BOUNCE)*vn*nyv;}
+  }
+
+  function finish(){
+    won=true;ball.vx=ball.vy=0;
+    const L=levels[li],score=moves<=L.par?3:moves<=L.par+2?2:1;
+    for(let i=0;i<45;i++)spawnParticle(ball.x,ball.y,i%2?'#49e3b4':'#ffc857',2.4);
+    unlocked=Math.max(unlocked,Math.min(levels.length,li+2));
+    starsBig.textContent='★'.repeat(score)+'☆'.repeat(3-score);
+    completeTitle.textContent=score===3?'Parfait !':score===2?'Bien joué !':'Niveau réussi !';
+    completeText.textContent='Niveau terminé en '+moves+' rotation'+(moves>1?'s':'')+'. Objectif 3★ : '+L.par+' ou moins.';
+    status.textContent='Portail atteint ✨';
+    completeBox.classList.add('show');
+    makeLevelButtons();updateUI();
+  }
+  function fail(){
+    failed=true;shake=9;
+    status.textContent='Collision avec un piège. Rejoue et tente une autre route.';
+    setTimeout(()=>{failed=false;resetLevel()},700);
+  }
+
+  function step(dt){
+    particles.forEach(p=>{p.x+=p.vx*dt;p.y+=p.vy*dt;p.vy+=30*dt;p.life-=dt});
+    particles=particles.filter(p=>p.life>0);
+    if(won||failed)return;
+    const a=angle*Math.PI/2;
+    ball.vx+=Math.sin(a)*G*dt;ball.vy+=Math.cos(a)*G*dt;
+    ball.vx*=Math.pow(FRICTION,dt*60);ball.vy*=Math.pow(FRICTION,dt*60);
+    ball.x+=ball.vx*dt;ball.y+=ball.vy*dt;
+
+    const L=levels[li];
+    for(const w of L.walls)resolveRect(w);
+    for(const h of L.hazards)if(circleRect(ball.x,ball.y,R,h)){fail();return;}
+    for(const b of L.boosts||[]){
+      const dx=ball.x-b[0],dy=ball.y-b[1];
+      if(dx*dx+dy*dy<(R+b[2])*(R+b[2])){
+        const boost=180;ball.vx+=Math.sin(a)*boost*dt*12;ball.vy+=Math.cos(a)*boost*dt*12;
+      }
+    }
+    const g=L.goal,dx=ball.x-g[0],dy=ball.y-g[1];
+    if(dx*dx+dy*dy<(g[2]-3)*(g[2]-3))finish();
+  }
+
+  function roundedRect(x,y,w,h,r){
+    r=Math.min(r,w/2,h/2);ctx.beginPath();ctx.moveTo(x+r,y);ctx.arcTo(x+w,y,x+w,y+h,r);ctx.arcTo(x+w,y+h,x,y+h,r);ctx.arcTo(x,y+h,x,y,r);ctx.arcTo(x,y,x+w,y,r);ctx.closePath();
+  }
+  function drawGrid(){
+    ctx.save();ctx.strokeStyle='rgba(255,255,255,.025)';ctx.lineWidth=1;
+    for(let x=20;x<W;x+=30){ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x,H);ctx.stroke()}
+    for(let y=20;y<H;y+=30){ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(W,y);ctx.stroke()}
+    ctx.restore();
+  }
+
+  function draw(){
+    ctx.clearRect(0,0,W,H);
+    const bg=ctx.createLinearGradient(0,0,W,H);bg.addColorStop(0,'#0b1226');bg.addColorStop(1,'#111a34');ctx.fillStyle=bg;ctx.fillRect(0,0,W,H);
+    drawGrid();
+
+    ctx.save();
+    const sx=shake? (Math.random()-.5)*shake:0,sy=shake?(Math.random()-.5)*shake:0;if(shake)shake*=.84;
+    ctx.translate(W/2+sx,H/2+sy);ctx.rotate(angle*Math.PI/2);ctx.translate(-W/2,-H/2);
+    const L=levels[li];
+
+    for(const w of L.walls){
+      ctx.shadowColor='rgba(0,0,0,.32)';ctx.shadowBlur=12;ctx.shadowOffsetY=5;
+      const gr=ctx.createLinearGradient(w[0],w[1],w[0],w[1]+w[3]);gr.addColorStop(0,'#445073');gr.addColorStop(1,'#232e50');
+      ctx.fillStyle=gr;roundedRect(...w,6);ctx.fill();
+      ctx.shadowColor='transparent';ctx.fillStyle='rgba(255,255,255,.09)';roundedRect(w[0]+2,w[1]+2,w[2]-4,2,1);ctx.fill();
+    }
+
+    for(const h of L.hazards){
+      ctx.shadowColor='rgba(255,74,111,.35)';ctx.shadowBlur=15;ctx.fillStyle='#ff5574';roundedRect(...h,4);ctx.fill();ctx.shadowColor='transparent';
+      ctx.fillStyle='#ffd8df';
+      for(let x=h[0]+2;x<h[0]+h[2]-7;x+=11){ctx.beginPath();ctx.moveTo(x,h[1]+h[3]);ctx.lineTo(x+5.5,h[1]);ctx.lineTo(x+11,h[1]+h[3]);ctx.fill();}
+    }
+
+    for(const b of L.boosts||[]){
+      ctx.beginPath();ctx.arc(b[0],b[1],b[2],0,Math.PI*2);ctx.fillStyle='rgba(124,92,255,.16)';ctx.fill();
+      ctx.beginPath();ctx.arc(b[0],b[1],b[2]-7,0,Math.PI*2);ctx.strokeStyle='#947cff';ctx.lineWidth=3;ctx.stroke();
+      ctx.fillStyle='#b9acff';ctx.font='900 16px system-ui';ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText('⇧',b[0],b[1]+1);
+    }
+
+    const g=L.goal;
+    const pulse=1+Math.sin(performance.now()/220)*.07;
+    ctx.save();ctx.translate(g[0],g[1]);ctx.scale(pulse,pulse);
+    ctx.shadowColor='rgba(73,227,180,.65)';ctx.shadowBlur=24;ctx.beginPath();ctx.arc(0,0,g[2],0,Math.PI*2);ctx.strokeStyle='#49e3b4';ctx.lineWidth=5;ctx.stroke();
+    ctx.shadowBlur=0;ctx.beginPath();ctx.arc(0,0,g[2]-8,0,Math.PI*2);ctx.fillStyle='rgba(73,227,180,.14)';ctx.fill();
+    ctx.restore();
+
+    ctx.shadowColor='rgba(255,174,69,.58)';ctx.shadowBlur=18;
+    const orb=ctx.createRadialGradient(ball.x-4,ball.y-5,1,ball.x,ball.y,R+2);orb.addColorStop(0,'#fff9d8');orb.addColorStop(.25,'#ffd36f');orb.addColorStop(1,'#ff8b3e');
+    ctx.fillStyle=orb;ctx.beginPath();ctx.arc(ball.x,ball.y,R,0,Math.PI*2);ctx.fill();ctx.shadowColor='transparent';
+    ctx.beginPath();ctx.arc(ball.x-3.5,ball.y-4,2.3,0,Math.PI*2);ctx.fillStyle='rgba(255,255,255,.82)';ctx.fill();
+
+    for(const p of particles){
+      ctx.globalAlpha=Math.max(0,p.life/p.max);ctx.fillStyle=p.color;ctx.beginPath();ctx.arc(p.x,p.y,p.size,0,Math.PI*2);ctx.fill();
+    }
+    ctx.globalAlpha=1;
+    ctx.restore();
+  }
+
+  function loop(t){
+    const dt=Math.min(.025,(t-last)/1000||0);last=t;step(dt);draw();requestAnimationFrame(loop);
+  }
+
+  leftBtn.addEventListener('click',()=>rotate(-1));
+  rightBtn.addEventListener('click',()=>rotate(1));
+  restartBtn.addEventListener('click',resetLevel);
+  nextBtn.addEventListener('click',()=>{li=(li+1)%levels.length;resetLevel();});
+  window.addEventListener('keydown',e=>{
+    if(!gameScreen.classList.contains('active'))return;
+    if(e.key==='ArrowLeft'){e.preventDefault();rotate(-1)}
+    if(e.key==='ArrowRight'){e.preventDefault();rotate(1)}
+    if(e.key.toLowerCase()==='r')resetLevel();
+  },{passive:false});
+
+  makeLevelButtons();resetLevel();requestAnimationFrame(loop);
+})();
+</script>
+
+<script>
+if ('serviceWorker' in navigator && location.protocol.startsWith('http')) {
+  window.addEventListener('load', function () {
+    navigator.serviceWorker.register('./sw.js').catch(function(){});
+  });
+}
+</script>
+
+</body>
+</html>
