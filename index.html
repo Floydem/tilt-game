@@ -7,7 +7,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="TILT">
-<title>TILT — V0.5 Core + Frozen</title>
+<title>TILT — V0.5.1 Core + Frozen</title>
 <style>
 :root{--bg:#08111f;--text:#f7fbff;--muted:#9eabc2;--violet:#8067ff;--cyan:#4be1c3;--gold:#ffd15a;--red:#ff5b75;--ice:#8fe7ff;--line:rgba(255,255,255,.10)}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
@@ -30,7 +30,7 @@ button{font:inherit}.app{width:min(100%,540px)}
 </head>
 <body>
 <main class="app">
-<div class="top"><div class="brand"><div class="logo">T</div><div><b>TILT</b><small>Gravity Puzzle</small></div></div><div class="ver">V0.5 · 20 niveaux</div></div>
+<div class="top"><div class="brand"><div class="logo">T</div><div><b>TILT</b><small>Gravity Puzzle</small></div></div><div class="ver">V0.5.1 · Physics Fix</div></div>
 <section class="world">
   <div class="worldhead"><div><div class="eyebrow" id="worldEyebrow">Monde 1 · Niveaux 1–10</div><div class="worldname" id="worldName">CORE RUINS</div></div><div class="chip" id="bestChip">0 / 60 ★</div></div>
   <div class="worldtabs"><button class="worldtab active" id="coreTab">I · CORE RUINS</button><button class="worldtab" id="frozenTab">II · ❄ FROZEN</button></div>
@@ -43,7 +43,7 @@ button{font:inherit}.app{width:min(100%,540px)}
   <div class="done" id="completeBox"><div class="bigstars" id="starsBig">★★★</div><h2 id="completeTitle">Niveau terminé</h2><p id="completeText"></p><div class="criteria"><span class="criterion" id="cFinish">✓ Terminé</span><span class="criterion" id="cPar">PAR</span><span class="criterion" id="cCrystal">Cristal</span></div><button class="next" id="nextBtn">NIVEAU SUIVANT</button></div>
   <div class="levels" id="levelButtons"></div>
 </section>
-<div class="foot">Mode prototype : les deux mondes sont accessibles directement pour les tests.</div>
+<div class="foot">Physique V0.5.1 : tourner change la gravité, jamais l’inertie de la bille.</div>
 </main>
 
 <script>
@@ -69,7 +69,7 @@ const raw=[
 // FROZEN 11–20. Blue surfaces are low-friction ice.
 {world:'frozen',par:3,side:'bottom',pos:246,start:[66,72],cr:[168,205],w:[],i:[[32,150,190,16],[108,295,180,16]],h:[]},
 {world:'frozen',par:3,side:'right',pos:355,start:[62,78],cr:[245,205],w:[[35,336,105,16]],i:[[32,140,204,16],[104,238,184,16]],h:[]},
-{world:'frozen',par:4,side:'top',pos:242,start:[58,390],cr:[164,220],w:[[120,260,80,16]],i:[[32,112,125,16],[165,112,123,16],[32,350,125,16],[165,350,123,16]],h:[]},
+{world:'frozen',par:4,side:'top',pos:242,start:[58,390],cr:[160,220],w:[[120,260,80,16]],i:[[32,112,105,16],[183,112,105,16],[32,350,105,16],[183,350,105,16]],h:[]},
 {world:'frozen',par:4,side:'left',pos:122,start:[254,385],cr:[242,198],w:[[124,214,72,16]],i:[[48,148,194,16],[92,306,196,16]],h:[[190,430,82,10]]},
 {world:'frozen',par:5,side:'bottom',pos:78,start:[250,74],cr:[160,190],w:[[144,250,32,16]],i:[[70,110,16,230],[150,145,16,250],[230,110,16,230]],h:[[32,430,56,10]]},
 {world:'frozen',par:5,side:'right',pos:108,start:[62,72],cr:[62,358],w:[[118,205,84,16]],i:[[92,72,16,255],[166,160,16,270],[240,72,16,250]],h:[[32,430,70,10],[214,430,60,10]]},
@@ -111,10 +111,10 @@ function buttons(){
 }
 function reset(){
   const L=levels[n];a=va=m=0;win=fail=crystal=false;parts=[];shake=squash=0;ball={x:L.start[0],y:L.start[1],vx:0,vy:0};ui.done.classList.remove('show');
-  ui.status.textContent=L.world==='frozen'?(n===10?'❄ Nouveau : la glace conserve presque toute ta vitesse.':'Glace = très peu d’adhérence. Anticipe ton inertie.'):'Atteins la sortie. Le cristal est optionnel.';
+  ui.status.textContent=L.world==='frozen'?(n===10?'❄ Nouveau : la glace conserve presque toute ta vitesse.':'Glace = très peu d’adhérence. Anticipe ton inertie.'):(n===0?'Tourner modifie la gravité sans annuler ta vitesse.':'Atteins la sortie. Le cristal est optionnel.');
   update();buttons()
 }
-function turn(d){if(win||fail)return;audioReady();tone(d>0?410:350,.045,.025,'triangle');a=(a+d+4)%4;m++;ball.vx*=.985;ball.vy*=.985;for(let i=0;i<12;i++)particle(ball.x,ball.y,levels[n].world==='frozen'?'#9deaff':'#9580ff',1.2);update()}
+function turn(d){if(win||fail)return;audioReady();tone(d>0?410:350,.045,.025,'triangle');a=(a+d+4)%4;m++;/* Rotation changes gravity only: momentum is fully preserved. */for(let i=0;i<12;i++)particle(ball.x,ball.y,levels[n].world==='frozen'?'#9deaff':'#9580ff',1.2);update()}
 function particle(px,py,col,s=1){parts.push({x:px,y:py,vx:(Math.random()-.5)*100*s,vy:(Math.random()-.5)*100*s,life:.6+Math.random()*.25,max:.85,size:1.5+Math.random()*3,c:col});if(parts.length>120)parts.splice(0,parts.length-120)}
 function cr(px,py,r,q){const [rx,ry,rw,rh]=q,nx=Math.max(rx,Math.min(px,rx+rw)),ny=Math.max(ry,Math.min(py,ry+rh)),dx=px-nx,dy=py-ny;return dx*dx+dy*dy<r*r}
 
@@ -127,7 +127,7 @@ function hit(q,icy=false){
     const speed=Math.abs(vn),rest=Math.max(.04,Math.min(.62,.06+(speed-80)/700));
     ball.vx-=(1+rest)*vn*nxv;ball.vy-=(1+rest)*vn*nyv;
     // Tangential friction is the Frozen mechanic.
-    const tx=-nyv,ty=nxv,tv=ball.vx*tx+ball.vy*ty,keep=icy?.997:.78;
+    const tx=-nyv,ty=nxv,tv=ball.vx*tx+ball.vy*ty,keep=icy?.9997:.985;
     ball.vx+=(tv*keep-tv)*tx;ball.vy+=(tv*keep-tv)*ty;
     if(speed>85){squash=Math.min(.34,.08+speed/1500);sqAxis=Math.abs(nxv)>.7?'x':'y';const now=performance.now();if(now-lastImpact>65){tone(Math.min(225,icy?120+speed*.14:90+speed*.13),.035,Math.min(.04,.012+speed/15000),icy?'triangle':'sine');lastImpact=now}if(speed>300){shake=Math.min(5,speed/100);buzz(8)}for(let i=0;i<Math.min(8,Math.floor(speed/90));i++)particle(ball.x-nxv*R,ball.y-nyv*R,icy?'#a8efff':'#ffce6a',.55)}
   }
